@@ -11,7 +11,6 @@ import httpx
 import pytest
 from claude_agent_sdk import ClaudeAgentOptions
 from claude_dentist import claude_dentist
-
 from python_agent_input import agent_input
 
 FETCH_TEMPERATURE = Path(__file__).parent / "fetch_temperature.py"
