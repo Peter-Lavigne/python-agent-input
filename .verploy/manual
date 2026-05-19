@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "1. Review the code."
+echo "2. Run the dentist test: uv run pytest -m agent_experience -s --tb=short"
+echo "3. Report findings."
+read -p "Is it acceptable? (y/n) " answer
+[ "$answer" = "y" ]

@@ -1,0 +1,59 @@
+[project]
+name = "python-agent-input"
+version = "0.0.2"
+description = "input() for Claude Code agents"
+readme = "README.md"
+authors = [{ name = "Peter Lavigne" }]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    "pl-mocks-and-fakes>=0.0.38",
+]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.urls]
+Homepage = "https://github.com/Peter-Lavigne/python-agent-input"
+Repository = "https://github.com/Peter-Lavigne/python-agent-input"
+
+[build-system]
+requires = ["uv_build>=0.10.4,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28",
+    "verploy>=0.0.2",
+    "pyright>=1.1.409",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.2",
+    "claude-agent-sdk>=0.2.82",
+    "claude-dentist>=0.0.3",
+]
+
+[tool.pytest.ini_options]
+addopts = [
+    "-q",
+    "-rN",
+    "-s",
+    "--tb=short",
+    "-m", "not agent_experience",
+]
+markers = [
+    "agent_experience: runs a real Claude agent (slow, costs money)",
+]
+
+
+[tool.pyright]
+typeCheckingMode = "strict"
+
+[tool.coverage.run]
+omit = ["tests/*"]
