@@ -200,6 +200,41 @@ def test_displays_validation_error() -> None:
     session.curl("abc")
     session.curl("4")
 
+    assert "invalid literal for int() with base 10: 'abc'" in session.stdout
+
+
+def test_full_flow__happy_path() -> None:
+    def script() -> None:
+        name = agent_input("What is your name?")
+        print(f"Hello, {name}!")
+
+    session = run(script)
+    session.curl("Alice")
+
+    output = _normalize_stdout(session.stdout)
+    assert output.strip() == textwrap.dedent("""\
+        [python-agent-input]
+        The running script is waiting for your input:
+
+          What is your name?
+
+        To respond:
+          curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'
+
+        [python-agent-input]
+        Input received.
+        Hello, Alice!""")
+
+
+def test_full_flow__validation_error() -> None:
+    def script() -> None:
+        answer = agent_input("What's 2+2?", validate=int)
+        print(f"The answer is {answer}")
+
+    session = run(script)
+    session.curl("abc")
+    session.curl("4")
+
     output = _normalize_stdout(session.stdout)
     assert output.strip() == textwrap.dedent("""\
         [python-agent-input]
@@ -222,7 +257,8 @@ def test_displays_validation_error() -> None:
           curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'
 
         [python-agent-input]
-        Input received.""")
+        Input received.
+        The answer is 4""")
 
 
 @pytest.mark.agent_experience
