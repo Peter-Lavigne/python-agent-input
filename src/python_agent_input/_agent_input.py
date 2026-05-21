@@ -114,11 +114,10 @@ def agent_input[T](
     while True:
         while response_holder is None:
             time.sleep(0.01)
-        raw = response_holder
-        response_holder = None
         try:
-            result: str | T = validate(raw) if validate else raw
+            result: str | T = validate(response_holder) if validate else response_holder
         except Exception as e:
+            response_holder = None
             print(
                 _format_validation_error(port, example_response, error=str(e)),
                 flush=True,
