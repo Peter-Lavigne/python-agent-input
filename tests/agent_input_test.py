@@ -182,7 +182,9 @@ def test_displays_validation_error() -> None:
     session.curl("4")
 
     output = _normalize_stdout(session.stdout)
-    assert output.strip() == textwrap.dedent("""\
+    assert (
+        output.strip()
+        == textwrap.dedent("""\
         [python-agent-input]
         The running script is waiting for your input:
 
@@ -200,6 +202,7 @@ def test_displays_validation_error() -> None:
 
         To respond:
           curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'""")
+    )
 
 
 @pytest.mark.agent_experience
