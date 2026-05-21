@@ -2,7 +2,6 @@ import socket
 import threading
 import time
 from collections.abc import Callable
-from typing import overload
 
 import uvicorn
 from fastapi import FastAPI
@@ -71,30 +70,13 @@ def _start_server(app: FastAPI) -> tuple[int, uvicorn.Server, threading.Thread]:
     return port, server, thread
 
 
-@overload
-def agent_input(
-    prompt: str,
-    *,
-    example_response: str | None = None,
-) -> str: ...
-
-
-@overload
-def agent_input[T](
-    prompt: str,
-    *,
-    example_response: str | None = None,
-    validate: Callable[[str], T],
-) -> T: ...
-
-
 @MockInUnitTests(MockReason.UNMITIGATED_SIDE_EFFECT)
 def agent_input[T](
     prompt: str,
     *,
     example_response: str | None = None,
-    validate: Callable[[str], T] | None = None,
-) -> str | T:
+    validate: Callable[[str], T] = str,
+) -> T:
     response_holder: str | None = None
     app = FastAPI()
 
@@ -115,7 +97,7 @@ def agent_input[T](
         while response_holder is None:
             time.sleep(0.01)
         try:
-            result: str | T = validate(response_holder) if validate else response_holder
+            result = validate(response_holder)
         except Exception as e:
             response_holder = None
             print(
