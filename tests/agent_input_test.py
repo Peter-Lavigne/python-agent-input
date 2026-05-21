@@ -85,6 +85,16 @@ def run(script: Callable[[], object]) -> Session:
     return Session(thread, stdout_capture)
 
 
+def test_confirms_input_received() -> None:
+    def script() -> None:
+        agent_input("What is your name?")
+
+    session = run(script)
+    session.curl("Alice")
+
+    assert "Input received." in session.stdout
+
+
 def test_inputs_string() -> None:
     def script() -> None:
         name = agent_input("What is your name?")
@@ -202,7 +212,10 @@ def test_displays_validation_error() -> None:
         ```
 
         Please try again. To respond:
-          curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'""")
+          curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'
+
+        [python-agent-input]
+        Input received.""")
     )
 
 
