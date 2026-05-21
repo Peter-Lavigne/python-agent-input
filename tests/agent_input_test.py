@@ -50,19 +50,22 @@ class Session:
         raise TimeoutError(msg)
 
     def _wait_for_script_to_advance(self, timeout: float = 5.0) -> None:
-        current_curl_count = self._curl_count
+        expected = self._curl_count
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             if not self._thread.is_alive():
                 return
-            new_matches = re.findall(
-                r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
-            )
-            if len(new_matches) > current_curl_count:
+            if self._stdout.getvalue().count("Input received.") >= expected:
+                break
+            time.sleep(0.01)
+        else:
+            msg = "Script did not advance within timeout"
+            raise TimeoutError(msg)
+        settle_deadline = time.monotonic() + 0.5
+        while time.monotonic() < settle_deadline:
+            if not self._thread.is_alive():
                 return
             time.sleep(0.01)
-        msg = "Script did not advance within timeout"
-        raise TimeoutError(msg)
 
 
 def _normalize_stdout(stdout: str) -> str:
