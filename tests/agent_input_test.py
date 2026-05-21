@@ -61,11 +61,7 @@ class Session:
         else:
             msg = "Script did not advance within timeout"
             raise TimeoutError(msg)
-        settle_deadline = time.monotonic() + 0.5
-        while time.monotonic() < settle_deadline:
-            if not self._thread.is_alive():
-                return
-            time.sleep(0.01)
+        time.sleep(0.5)
 
 
 def _normalize_stdout(stdout: str) -> str:
