@@ -77,13 +77,13 @@ def agent_input[T](
     example_response: str | None = None,
     validate: Callable[[str], T] = str,
 ) -> T:
-    response_holder: str | None = None
+    inputted_value: str | None = None
     app = FastAPI()
 
     @app.post("/respond")
     async def respond(body: _RespondBody) -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
-        nonlocal response_holder
-        response_holder = body.input
+        nonlocal inputted_value
+        inputted_value = body.input
         return {"status": "ok"}
 
     port, server, thread = _start_server(app)
@@ -94,13 +94,13 @@ def agent_input[T](
     )
 
     while True:
-        while response_holder is None:
+        while inputted_value is None:
             time.sleep(0.01)
         try:
-            result = validate(response_holder)
+            result = validate(inputted_value)
             break
         except Exception as e:
-            response_holder = None
+            inputted_value = None
             print(
                 _format_validation_error(port, example_response, error=str(e)),
                 flush=True,
