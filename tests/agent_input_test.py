@@ -49,7 +49,12 @@ class Session:
 
     def _wait_for_curl_url(self, occurrence: int) -> str:
         _poll_until(
-            lambda: len(re.findall(r"curl -s -X POST (http://\S+)", self._stdout.getvalue())) >= occurrence,
+            lambda: (
+                len(
+                    re.findall(r"curl -s -X POST (http://\S+)", self._stdout.getvalue())
+                )
+                >= occurrence
+            ),
             f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s",
         )
         matches = re.findall(r"curl -s -X POST (http://\S+)", self._stdout.getvalue())
@@ -58,7 +63,10 @@ class Session:
     def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
         _poll_until(
-            lambda: not self._thread.is_alive() or self._stdout.getvalue().count("Input received.") >= expected,
+            lambda: (
+                not self._thread.is_alive()
+                or self._stdout.getvalue().count("Input received.") >= expected
+            ),
             "Script did not advance within timeout",
         )
         time.sleep(0.5)
