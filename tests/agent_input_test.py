@@ -58,7 +58,8 @@ class Session:
                 if len(matches) >= occurrence:
                     return matches[occurrence - 1]
                 time.sleep(0.01)
-        raise AssertionError("unreachable")
+        msg = "unreachable"
+        raise AssertionError(msg)
 
     def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
