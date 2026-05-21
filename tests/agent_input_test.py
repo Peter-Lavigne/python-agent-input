@@ -17,11 +17,12 @@ FETCH_TEMPERATURE = Path(__file__).parent / "fetch_temperature.py"
 TIMEOUT = 2.0
 
 
-def _poll_until(condition: Callable[[], bool], msg: str) -> None:
+def _poll_until[T](condition: Callable[[], T], msg: str) -> T:
     deadline = time.monotonic() + TIMEOUT
     while time.monotonic() < deadline:
-        if condition():
-            return
+        result = condition()
+        if result:
+            return result
         time.sleep(0.01)
     raise TimeoutError(msg)
 
@@ -48,17 +49,18 @@ class Session:
         self._wait_for_script_to_advance()
 
     def _wait_for_curl_url(self, occurrence: int) -> str:
-        _poll_until(
-            lambda: (
-                len(
-                    re.findall(r"curl -s -X POST (http://\S+)", self._stdout.getvalue())
-                )
-                >= occurrence
-            ),
+        def _check() -> str | None:
+            matches = re.findall(
+                r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
+            )
+            if len(matches) >= occurrence:
+                return matches[occurrence - 1]
+            return None
+
+        return _poll_until(
+            _check,
             f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s",
         )
-        matches = re.findall(r"curl -s -X POST (http://\S+)", self._stdout.getvalue())
-        return matches[occurrence - 1]
 
     def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
