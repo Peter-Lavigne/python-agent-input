@@ -19,9 +19,16 @@ TIMEOUT = 2.0
 
 
 @contextlib.contextmanager
-def _advancement_timeout(msg: str) -> Generator[float]:
+def _advancement_timeout(msg: str) -> Generator[Callable[[], bool]]:
     deadline = time.monotonic() + TIMEOUT
-    yield deadline
+
+    def poll() -> bool:
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(0.01)
+        return True
+
+    yield poll
     if time.monotonic() >= deadline:
         raise TimeoutError(msg)
 
@@ -50,26 +57,24 @@ class Session:
     def _wait_for_curl_url(self, occurrence: int) -> str:
         with _advancement_timeout(
             f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s"
-        ) as deadline:
-            while time.monotonic() < deadline:
+        ) as poll:
+            while poll():
                 matches = re.findall(
                     r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
                 )
                 if len(matches) >= occurrence:
                     return matches[occurrence - 1]
-                time.sleep(0.01)
         msg = "unreachable"
         raise AssertionError(msg)
 
     def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
-        with _advancement_timeout("Script did not advance within timeout") as deadline:
-            while time.monotonic() < deadline:
+        with _advancement_timeout("Script did not advance within timeout") as poll:
+            while poll():
                 if not self._thread.is_alive():
                     return
                 if self._stdout.getvalue().count("Input received.") >= expected:
                     break
-                time.sleep(0.01)
         time.sleep(0.5)
 
 
