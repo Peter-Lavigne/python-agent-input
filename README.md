@@ -1,6 +1,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/python-agent-input)](https://pypi.org/project/python-agent-input/)
 [![Python versions](https://img.shields.io/pypi/pyversions/python-agent-input)](https://pypi.org/project/python-agent-input/)
 [![License](https://img.shields.io/pypi/l/python-agent-input)](./LICENSE)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/Peter-Lavigne/python-agent-input)
 [![Claude Dentist Rating](https://img.shields.io/badge/Claude%20Dentist%20Rating-10%2F10-blue)](https://github.com/Peter-Lavigne/claude-dentist)
 
 # python-agent-input
