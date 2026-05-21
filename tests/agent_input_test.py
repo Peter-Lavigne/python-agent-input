@@ -192,9 +192,7 @@ def test_displays_validation_error() -> None:
     session.curl("4")
 
     output = _normalize_stdout(session.stdout)
-    assert (
-        output.strip()
-        == textwrap.dedent("""\
+    assert output.strip() == textwrap.dedent("""\
         [python-agent-input]
         The running script is waiting for your input:
 
@@ -216,7 +214,6 @@ def test_displays_validation_error() -> None:
 
         [python-agent-input]
         Input received.""")
-    )
 
 
 @pytest.mark.agent_experience
