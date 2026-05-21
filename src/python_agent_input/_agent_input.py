@@ -98,14 +98,15 @@ def agent_input[T](
             time.sleep(0.01)
         try:
             result = validate(response_holder)
+            break
         except Exception as e:
             response_holder = None
             print(
                 _format_validation_error(port, example_response, error=str(e)),
                 flush=True,
             )
-        else:
-            print("\n[python-agent-input]\nInput received.\n", flush=True)
-            server.should_exit = True
-            thread.join()
-            return result
+
+    print("\n[python-agent-input]\nInput received.\n", flush=True)
+    server.should_exit = True
+    thread.join()
+    return result
