@@ -173,7 +173,7 @@ def test_retries_on_validation_failure() -> None:
     assert "The answer is 4" in session.stdout
 
 
-def test_retry_message_includes_error() -> None:
+def test_displays_validation_error() -> None:
     def script() -> None:
         agent_input("What's 2+2?", validate=int)
 
@@ -181,7 +181,25 @@ def test_retry_message_includes_error() -> None:
     session.curl("abc")
     session.curl("4")
 
-    assert "invalid literal for int() with base 10: 'abc'" in session.stdout
+    output = _normalize_stdout(session.stdout)
+    assert output.strip() == textwrap.dedent("""\
+        [python-agent-input]
+        The running script is waiting for your input:
+
+          What's 2+2?
+
+        To respond:
+          curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'
+
+        [python-agent-input]
+        The running script is waiting for your input:
+
+          What's 2+2?
+
+        Your previous input was invalid: invalid literal for int() with base 10: 'abc'
+
+        To respond:
+          curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'""")
 
 
 @pytest.mark.agent_experience
