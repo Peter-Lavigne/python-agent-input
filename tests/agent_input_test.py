@@ -57,10 +57,12 @@ class Session:
                 return matches[occurrence - 1]
             return None
 
-        return _poll_until(
+        url = _poll_until(
             _check,
             f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s",
         )
+        assert url is not None
+        return url
 
     def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
