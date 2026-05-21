@@ -53,7 +53,7 @@ class Session:
             matches = re.findall(
                 r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
             )
-            if len(matches) >= occurrence:
+            if len(matches) == occurrence:
                 return matches[occurrence - 1]
             return None
 
@@ -67,7 +67,7 @@ class Session:
         _poll_until(
             lambda: (
                 not self._thread.is_alive()
-                or self._stdout.getvalue().count("Input received.") >= expected
+                or self._stdout.getvalue().count("Input received.") == expected
             ),
             "Script did not advance within timeout",
         )
