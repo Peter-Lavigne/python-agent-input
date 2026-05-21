@@ -115,7 +115,7 @@ def agent_input[T](
             time.sleep(0.01)
         raw = response_holder.pop("value")
         if validate is None:
-            print("\n[python-agent-input]\nInput received.", flush=True)
+            print("\n[python-agent-input]\nInput received.\n", flush=True)
             server.should_exit = True
             thread.join()
             return raw
@@ -127,7 +127,7 @@ def agent_input[T](
                 flush=True,
             )
         else:
-            print("\n[python-agent-input]\nInput received.", flush=True)
+            print("\n[python-agent-input]\nInput received.\n", flush=True)
             server.should_exit = True
             thread.join()
             return result

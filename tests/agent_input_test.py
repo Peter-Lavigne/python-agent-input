@@ -223,6 +223,7 @@ def test_full_flow__happy_path() -> None:
 
         [python-agent-input]
         Input received.
+
         Hello, Alice!""")
 
 
@@ -258,6 +259,7 @@ def test_full_flow__validation_error() -> None:
 
         [python-agent-input]
         Input received.
+
         The answer is 4""")
 
 
