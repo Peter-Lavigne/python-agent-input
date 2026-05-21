@@ -17,12 +17,12 @@ FETCH_TEMPERATURE = Path(__file__).parent / "fetch_temperature.py"
 TIMEOUT = 2.0
 
 
-def _poll_until[T](condition: Callable[[], T], msg: str) -> T:
+def _poll_until[T](condition: Callable[[], tuple[bool, T]], msg: str) -> T:
     deadline = time.monotonic() + TIMEOUT
     while time.monotonic() < deadline:
-        result = condition()
-        if result:
-            return result
+        done, value = condition()
+        if done:
+            return value
         time.sleep(0.01)
     raise TimeoutError(msg)
 
@@ -49,27 +49,26 @@ class Session:
         self._wait_for_script_to_advance()
 
     def _wait_for_curl_url(self, occurrence: int) -> str:
-        def _check() -> str | None:
+        def _check() -> tuple[bool, str]:
             matches = re.findall(
                 r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
             )
             if len(matches) == occurrence:
-                return matches[occurrence - 1]
-            return None
+                return True, matches[occurrence - 1]
+            return False, ""
 
-        url = _poll_until(
+        return _poll_until(
             _check,
             f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s",
         )
-        assert url is not None
-        return url
 
     def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
         _poll_until(
             lambda: (
                 not self._thread.is_alive()
-                or self._stdout.getvalue().count("Input received.") == expected
+                or self._stdout.getvalue().count("Input received.") == expected,
+                None,
             ),
             "Script did not advance within timeout",
         )
