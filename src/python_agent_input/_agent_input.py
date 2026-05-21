@@ -16,26 +16,40 @@ def _find_open_port() -> int:
         return s.getsockname()[1]
 
 
-def _format_message(
+def _curl_snippet(port: int, example_response: str | None) -> str:
+    url = f"http://localhost:{port}/respond"
+    example = example_response or "your input here"
+    return (
+        f"  curl -s -X POST {url}"
+        f""" -H 'Content-Type: application/json' -d '{{"input": "{example}"}}'"""
+    )
+
+
+def _format_prompt(
     port: int,
     prompt: str,
     example_response: str | None,
-    error: str | None = None,
 ) -> str:
-    url = f"http://localhost:{port}/respond"
-    example = example_response or "your input here"
     parts = [
         "\n[python-agent-input]",
         "The running script is waiting for your input:",
         f"\n  {prompt}",
+        f"\nTo respond:\n{_curl_snippet(port, example_response)}",
     ]
-    if error:
-        parts.append(f"\nYour previous input was invalid: {error}")
-    parts.append(
-        f"\nTo respond:\n"
-        f"  curl -s -X POST {url}"
-        f""" -H 'Content-Type: application/json' -d '{{"input": "{example}"}}'"""
-    )
+    return "\n".join(parts)
+
+
+def _format_validation_error(
+    port: int,
+    example_response: str | None,
+    error: str,
+) -> str:
+    parts = [
+        "\n[python-agent-input]",
+        "Input received. However, your input failed validation checks.",
+        f"\nValidation failure message:\n```\n{error}\n```",
+        f"\nPlease try again. To respond:\n{_curl_snippet(port, example_response)}",
+    ]
     return "\n".join(parts)
 
 
@@ -92,7 +106,7 @@ def agent_input[T](
     port, server, thread = _start_server(app)
 
     print(
-        _format_message(port, prompt, example_response),
+        _format_prompt(port, prompt, example_response),
         flush=True,
     )
 
@@ -108,7 +122,7 @@ def agent_input[T](
             result = validate(raw)
         except Exception as e:
             print(
-                _format_message(port, prompt, example_response, error=str(e)),
+                _format_validation_error(port, example_response, error=str(e)),
                 flush=True,
             )
         else:

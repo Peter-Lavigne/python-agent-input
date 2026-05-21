@@ -194,13 +194,14 @@ def test_displays_validation_error() -> None:
           curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'
 
         [python-agent-input]
-        The running script is waiting for your input:
+        Input received. However, your input failed validation checks.
 
-          What's 2+2?
+        Validation failure message:
+        ```
+        invalid literal for int() with base 10: 'abc'
+        ```
 
-        Your previous input was invalid: invalid literal for int() with base 10: 'abc'
-
-        To respond:
+        Please try again. To respond:
           curl -s -X POST http://localhost:PORT/respond -H 'Content-Type: application/json' -d '{"input": "your input here"}'""")
     )
 
