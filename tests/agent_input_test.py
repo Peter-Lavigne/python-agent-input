@@ -1,10 +1,11 @@
+import contextlib
 import io
 import re
 import sys
 import textwrap
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from pathlib import Path
 
 import httpx
@@ -14,6 +15,15 @@ from claude_dentist import claude_dentist
 from python_agent_input import agent_input
 
 FETCH_TEMPERATURE = Path(__file__).parent / "fetch_temperature.py"
+TIMEOUT = 2.0
+
+
+@contextlib.contextmanager
+def _advancement_timeout(msg: str) -> Generator[float]:
+    deadline = time.monotonic() + TIMEOUT
+    yield deadline
+    if time.monotonic() >= deadline:
+        raise TimeoutError(msg)
 
 
 class Session:
@@ -37,30 +47,28 @@ class Session:
             client.post(url, json={"input": value})
         self._wait_for_script_to_advance()
 
-    def _wait_for_curl_url(self, occurrence: int, timeout: float = 5.0) -> str:
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            matches = re.findall(
-                r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
-            )
-            if len(matches) >= occurrence:
-                return matches[occurrence - 1]
-            time.sleep(0.01)
-        msg = f"Curl URL occurrence {occurrence} not found within {timeout}s"
-        raise TimeoutError(msg)
+    def _wait_for_curl_url(self, occurrence: int) -> str:
+        with _advancement_timeout(
+            f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s"
+        ) as deadline:
+            while time.monotonic() < deadline:
+                matches = re.findall(
+                    r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
+                )
+                if len(matches) >= occurrence:
+                    return matches[occurrence - 1]
+                time.sleep(0.01)
+        raise AssertionError("unreachable")
 
-    def _wait_for_script_to_advance(self, timeout: float = 5.0) -> None:
+    def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            if not self._thread.is_alive():
-                return
-            if self._stdout.getvalue().count("Input received.") >= expected:
-                break
-            time.sleep(0.01)
-        else:
-            msg = "Script did not advance within timeout"
-            raise TimeoutError(msg)
+        with _advancement_timeout("Script did not advance within timeout") as deadline:
+            while time.monotonic() < deadline:
+                if not self._thread.is_alive():
+                    return
+                if self._stdout.getvalue().count("Input received.") >= expected:
+                    break
+                time.sleep(0.01)
         time.sleep(0.5)
 
 
