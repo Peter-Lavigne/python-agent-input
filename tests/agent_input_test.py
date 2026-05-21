@@ -1,11 +1,10 @@
-import contextlib
 import io
 import re
 import sys
 import textwrap
 import threading
 import time
-from collections.abc import Callable, Generator
+from collections.abc import Callable
 from pathlib import Path
 
 import httpx
@@ -18,19 +17,13 @@ FETCH_TEMPERATURE = Path(__file__).parent / "fetch_temperature.py"
 TIMEOUT = 2.0
 
 
-@contextlib.contextmanager
-def _advancement_timeout(msg: str) -> Generator[Callable[[], bool]]:
+def _poll_until(condition: Callable[[], bool], msg: str) -> None:
     deadline = time.monotonic() + TIMEOUT
-
-    def poll() -> bool:
-        if time.monotonic() >= deadline:
-            return False
+    while time.monotonic() < deadline:
+        if condition():
+            return
         time.sleep(0.01)
-        return True
-
-    yield poll
-    if time.monotonic() >= deadline:
-        raise TimeoutError(msg)
+    raise TimeoutError(msg)
 
 
 class Session:
@@ -55,26 +48,19 @@ class Session:
         self._wait_for_script_to_advance()
 
     def _wait_for_curl_url(self, occurrence: int) -> str:
-        with _advancement_timeout(
-            f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s"
-        ) as poll:
-            while poll():
-                matches = re.findall(
-                    r"curl -s -X POST (http://\S+)", self._stdout.getvalue()
-                )
-                if len(matches) >= occurrence:
-                    return matches[occurrence - 1]
-        msg = "unreachable"
-        raise AssertionError(msg)
+        _poll_until(
+            lambda: len(re.findall(r"curl -s -X POST (http://\S+)", self._stdout.getvalue())) >= occurrence,
+            f"Curl URL occurrence {occurrence} not found within {TIMEOUT}s",
+        )
+        matches = re.findall(r"curl -s -X POST (http://\S+)", self._stdout.getvalue())
+        return matches[occurrence - 1]
 
     def _wait_for_script_to_advance(self) -> None:
         expected = self._curl_count
-        with _advancement_timeout("Script did not advance within timeout") as poll:
-            while poll():
-                if not self._thread.is_alive():
-                    return
-                if self._stdout.getvalue().count("Input received.") >= expected:
-                    break
+        _poll_until(
+            lambda: not self._thread.is_alive() or self._stdout.getvalue().count("Input received.") >= expected,
+            "Script did not advance within timeout",
+        )
         time.sleep(0.5)
 
 
