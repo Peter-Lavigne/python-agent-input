@@ -10,7 +10,7 @@
 
 Claude Code hangs on `input()` because it cannot write to stdin. `agent_input()` replaces `input()` with an HTTP server — it prints curl instructions to stdout and blocks until the agent responds.
 
-**Important:** Since `agent_input()` blocks, the agent must run the script in the background with Bash, then use the `TaskOutput` tool with `block=false` to check its stdout for curl instructions.
+**Important:** Since `agent_input()` blocks, the agent must run the script using the Bash tool's `run_in_background` parameter (not `&`), then use the `TaskOutput` tool with `block=false` to check its stdout for curl instructions.
 
 ## Usage
 

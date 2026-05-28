@@ -271,8 +271,9 @@ async def test_agent_experience() -> None:
         runs=10,
         min_passes=9,
         prompt=textwrap.dedent(f"""\
-            Always run {FETCH_TEMPERATURE} in the background with
-            `uv run python {FETCH_TEMPERATURE}`, then use TaskOutput
+            Always run {FETCH_TEMPERATURE} with
+            `uv run python {FETCH_TEMPERATURE}` using the Bash tool's
+            run_in_background parameter (not &), then use TaskOutput
             with block=false to check its stdout.
 
             Your task is to run {FETCH_TEMPERATURE.name} and complete it
