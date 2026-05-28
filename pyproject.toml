@@ -1,6 +1,6 @@
 [project]
 name = "python-agent-input"
-version = "0.0.7"
+version = "0.0.8"
 description = "input() for Claude Code agents"
 readme = "README.md"
 authors = [{ name = "Peter Lavigne" }]
